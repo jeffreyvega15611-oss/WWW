@@ -1,0 +1,37 @@
+name: Fetch Kalshi Weather Data
+
+on:
+  schedule:
+    # Run every hour (24/7)
+    - cron: '0 * * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  fetch-weather:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Run weather data fetcher
+        run: python fetch_kalshi_weather.py
+      
+      - name: Commit and push data
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add -A
+            git commit -m "Update weather data - $(date)"
+            git push
+          fi
